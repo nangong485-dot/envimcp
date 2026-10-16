@@ -171,10 +171,12 @@ whenever you change anything:
 table shows up but calls fail, the server started and then died — check the host
 log and run `doctor`.
 
-**b) A raw stdio handshake**, bypassing the host entirely:
+**b) A raw stdio handshake**, bypassing the host entirely. Build the server
+command as an array so PowerShell passes each argument separately:
 
 ```powershell
-& $py "$repo\tools\probe_mcp_stdio.py" -- & $py -m envimcp.cli --config $cfg serve --transport stdio
+$server = @($py, '-m', 'envimcp.cli', '--config', $cfg, 'serve', '--transport', 'stdio')
+& $py "$repo\tools\probe_mcp_stdio.py" -- @server
 ```
 
 Expected output: `serverInfo` = `envimcp`, the negotiated protocol version, the
