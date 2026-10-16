@@ -1,5 +1,7 @@
 # envimcp — drive ENVI 5.2 from an AI agent over MCP
 
+**English** | [简体中文](README.zh-CN.md)
+
 `envimcp` exposes the 58 ENVITask operators of a local **ENVI 5.2 / IDL 8.4**
 installation to any MCP client (DeepSeek Harness, Codex, ZCode, Claude Desktop,
 …) as eight tools and five resources, with no ENVI GUI and no Python bridge.
