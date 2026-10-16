@@ -1,0 +1,9 @@
+# Runtime (pinned: the mcp SDK changed API at 2.x -- FastMCP was renamed MCPServer)
+mcp==2.3.0
+
+# Optional, install with:  .venv\Scripts\python.exe -m pip install -e ".[geo]"
+# gdal>=3.6
+# rasterio>=1.3
+
+# Dev
+pytest>=7.4

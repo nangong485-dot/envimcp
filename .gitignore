@@ -1,0 +1,30 @@
+# Virtual environments, caches and build metadata. `tools/setup_env.ps1` rebuilds
+# the venv from scratch, so nothing here needs to be committed.
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Runtime directories. `jobs/` holds one directory per job (generated IDL,
+# status.json, logs) and can reach tens of megabytes; `outputs/` holds whatever
+# the agent asked to persist. Both are recreated on demand.
+jobs/
+outputs/
+
+# Legacy acceptance baseline. run.log / verify.log are transcripts, not sources;
+# out_ndvi.dat is 8 MB of regenerable output. Keep the scripts and the header,
+# drop the binaries and logs from the repository.
+tests/legacy/*.dat
+tests/legacy/*.log
+
+# Local overrides of the shipped configuration.
+config/local.toml
+
+# Local machine state. `.acl-report/` holds ACL inspection/repair reports and
+# restore backups produced by the sandbox diagnostics tool (machine SIDs and
+# absolute paths); `.test-run-temp/` is pytest scratch space; `_http_server.log`
+# is left behind by a manual `serve --transport http` run. None of it is source.
+.acl-report/
+.test-run-temp/
+_http_server.log

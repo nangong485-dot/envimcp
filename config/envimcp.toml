@@ -1,0 +1,58 @@
+# envimcp configuration. Every value can be overridden by an environment variable
+# (ENVIMCP_<SECTION>_<KEY>, upper-cased) or by the --config path passed to `envimcp`.
+#
+# Verified on this machine:
+#   ENVI 5.2  -> task templates in [task_template_dir], 58 x *.task
+#   IDL  8.4  -> idl.exe runs "-e @batch.pro" non-interactively, no GUI
+#   Python    -> D:\python312\python.exe  (bare `python` is not on PATH)
+
+[envi]
+# ENVI install root. Used for log files and future task-engine upgrades.
+root = "D:\\ENVI52"
+# Directory holding the *.task JSON specifications that define every ENVITask.
+task_template_dir = "D:\\ENVI52\\resource\\templates\\tasks"
+# Sample dataset used by the smoke test and the acceptance baseline.
+sample_raster = "D:\\ENVI52\\data\\qb_boulder_msi"
+
+[idl]
+# IDL 8.4 command-line interpreter. Do NOT use envi_idl.exe / idlde.exe here:
+# both are the Eclipse Workbench GUI launcher and will open a window.
+exe = "D:\\IDL84\\bin\\bin.x86_64\\idl.exe"
+# Absolute path to the IDL runner library compiled by every generated job.
+lib_dir = "idl"
+# Non-interactive startup: no WELCOME banner, no demo mode prompt.
+pref = "IDL_STARTUP=,IDL_PATH=+<IDL_DEFAULT>,IDL_DEMO_MODE=0"
+
+[paths]
+# All run-time artifacts live under the workspace root.
+jobs_dir = "jobs"
+outputs_dir = "outputs"
+# Root used by the '#name' persistent-URI token. Empty => outputs_dir.
+output_root = ""
+
+[limits]
+# ENVI keeps process-global state and uses a single node-locked license, so one
+# headless IDL process at a time is the safe default.
+max_concurrent = 1
+# queue | reject  -- what to do when a job arrives while max_concurrent is busy.
+on_busy = "queue"
+# Wall-clock budget for one job (seconds).
+timeout_s = 900
+# A job that fails is inspected at most this many times before envimcp stops and
+# reports back to the caller instead of grinding on (mirrors the NV5 batch prompt).
+max_retries = 2
+# Retries happen on top of the timeout; total worst case = timeout_s * (1 + max_retries).
+
+[server]
+name = "envimcp"
+# stdio for codex / zcode / Claude clients, http for streamable-HTTP clients.
+transport = "stdio"
+host = "127.0.0.1"
+port = 8765
+
+[security]
+# Registers the `envi_run_idl` escape hatch. Off by default: it executes arbitrary
+# IDL source with the full privileges of the ENVI session.
+allow_raw_idl = false
+# When false, job outputs must resolve inside outputs_dir / jobs_dir.
+allow_outputs_outside_root = false
