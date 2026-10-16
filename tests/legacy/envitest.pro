@@ -1,4 +1,5 @@
 ; envitest.pro - headless ENVI 5.2 + ENVITask verification (proven working)
+; <repo> = absolute path of the envimcp checkout; substitute it before running.
 PRO envitest
   COMPILE_OPT IDL2
 
@@ -14,7 +15,7 @@ PRO envitest
   task = ENVITask('SpectralIndex')
   task.INPUT_RASTER = raster
   task.INDEX = 'Normalized Difference Vegetation Index'
-  task.OUTPUT_RASTER_URI = 'E:\aiworkspace\deep seekharness\envi\out_ndvi.dat'
+  task.OUTPUT_RASTER_URI = '<repo>\out_ndvi.dat'
   task.Execute
   PRINT, 'Task executed. OUTPUT_RASTER = ' + task.OUTPUT_RASTER.URI
 

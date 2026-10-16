@@ -51,7 +51,7 @@ EXIT, STATUS = 0
   | `@E:/.../run_job.pro` (forward slash, bare) | exit 3, 37 modules compiled, **works** |
   | `@"E:/.../run_job.pro"` | exit 0, nothing happens |
 
-  A path containing spaces (`E:\aiworkspace\deep seekharness\...`) is truncated at
+  A path containing a space (as `<repo>` does in this project) is truncated at
   the space in the failing forms, which is why the failure looks like a missing
   file rather than a quoting bug. `Runner.command` therefore emits forward slashes.
 

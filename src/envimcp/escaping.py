@@ -1,7 +1,7 @@
 """Text escaping and formatting helpers shared by the IDL and JSON writers.
 
 Everything envimcp hands to IDL goes through here, so paths containing spaces
-(this workspace is ``E:\\aiworkspace\\deep seekharness\\envi``), apostrophes,
+(the checkout directory of this project may well contain one), apostrophes,
 CJK characters or backslashes survive round-tripping.
 """
 

@@ -38,22 +38,23 @@ generates IDL source instead of making calls. See
 
 ## Install
 
-Everything below assumes this one checkout at the fixed path
-`E:\aiworkspace\deep seekharness\envi` and a local ENVI 5.2 / IDL 8.4 install;
-it has only been verified on that machine. Create the environment first — the
+Everything below assumes a local ENVI 5.2 / IDL 8.4 install and one checkout of
+this repository. `<repo>` stands for the absolute path of that checkout — it may
+contain spaces, which is why every command below quotes it. The project has only
+been verified on the machine that produced it. Create the environment first — the
 `.venv` directory is **not** part of the source tree:
 
 ```powershell
 # 1. create/reuse .venv, install the package, print a health report
-pwsh -File E:\aiworkspace\deep seekharness\envi\tools\setup_env.ps1
+pwsh -File '<repo>\tools\setup_env.ps1'
 #    ...or, if the interpreter is not at the default path:
-pwsh -File E:\aiworkspace\deep seekharness\envi\tools\setup_env.ps1 -Python D:\python312\python.exe
+pwsh -File '<repo>\tools\setup_env.ps1' -Python D:\python312\python.exe
 ```
 
 Then, from the repository root:
 
 ```powershell
-$root = 'E:\aiworkspace\deep seekharness\envi'
+$root = '<repo>'
 & "$root\.venv\Scripts\python.exe" -m envimcp.cli --config "$root\config\envimcp.toml" doctor
 ```
 
@@ -85,8 +86,8 @@ Every key can be overridden by an `ENVIMCP_*` environment variable.
 ## Command line
 
 ```powershell
-$py  = 'E:\aiworkspace\deep seekharness\envi\.venv\Scripts\python.exe'
-$cfg = 'E:\aiworkspace\deep seekharness\envi\config\envimcp.toml'
+$py  = '<repo>\.venv\Scripts\python.exe'
+$cfg = '<repo>\config\envimcp.toml'
 
 & $py -m envimcp.cli --config $cfg doctor            # is this machine usable?
 & $py -m envimcp.cli --config $cfg smoke             # end-to-end NDVI regression
@@ -119,10 +120,10 @@ $cfg = 'E:\aiworkspace\deep seekharness\envi\config\envimcp.toml'
 {
   "mcpServers": {
     "envi": {
-      "command": "E:\\aiworkspace\\deep seekharness\\envi\\.venv\\Scripts\\python.exe",
+      "command": "<repo>\\.venv\\Scripts\\python.exe",
       "args": [
         "-m", "envimcp.cli",
-        "--config", "E:\\aiworkspace\\deep seekharness\\envi\\config\\envimcp.toml",
+        "--config", "<repo>\\config\\envimcp.toml",
         "serve", "--transport", "stdio"
       ]
     }
@@ -229,7 +230,7 @@ For multi-step chains use `envi_create_task_workflow` with `*NAME` wiring:
 ## Testing
 
 ```powershell
-cd 'E:\aiworkspace\deep seekharness\envi'
+cd '<repo>'
 & .\.venv\Scripts\python.exe -m pytest tests -q -m "not slow"   # 48 fast tests, ~1 s
 & .\.venv\Scripts\python.exe -m pytest tests -q -m slow         # 4 acceptance tests, ~20 s
 ```

@@ -19,9 +19,8 @@ ships inside DSH itself. You are only adding a row that points it at envimcp.
 
 Throughout, `<repo>` is the checkout root of this project (the directory holding
 `pyproject.toml`) and `<profile>` is the DSH profile name — `desktop` for a
-standard desktop install. Substitute your own absolute paths; the examples use
-the layout of the author's machine, where `<repo>` is
-`E:\aiworkspace\deep seekharness\envi`.
+standard desktop install. Substitute your own absolute paths; the examples below
+intentionally use generic ones.
 
 ## 1. Locate the profile directory
 
