@@ -231,7 +231,7 @@ For multi-step chains use `envi_create_task_workflow` with `*NAME` wiring:
 
 ```powershell
 cd '<repo>'
-& .\.venv\Scripts\python.exe -m pytest tests -q -m "not slow"   # 48 fast tests, ~1 s
+& .\.venv\Scripts\python.exe -m pytest tests -q -m "not slow"   # 52 fast tests, ~1.5 s
 & .\.venv\Scripts\python.exe -m pytest tests -q -m slow         # 4 acceptance tests, ~20 s
 ```
 
