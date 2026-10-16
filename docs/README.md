@@ -138,6 +138,11 @@ $cfg = 'E:\aiworkspace\deep seekharness\envi\config\envimcp.toml'
 
 The endpoint is `http://127.0.0.1:8765/mcp`.
 
+DeepSeek Harness does not use a JSON blob: it registers servers by patching its
+profile composition. The exact entry, the configuration keys it accepts, and a
+dependency-free handshake probe for verifying *any* client are in
+[DSH_MCP_SETUP.md](DSH_MCP_SETUP.md).
+
 ## Tools
 
 | Tool | Purpose |
