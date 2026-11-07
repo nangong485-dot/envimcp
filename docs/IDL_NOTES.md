@@ -1,7 +1,7 @@
 # IDL 8.4 / ENVI 5.2 notes
 
-Every statement below was reproduced against the real installation
-(`D:\IDL84\bin\bin.x86_64\idl.exe` + `D:\ENVI52`) while building this project.
+Every statement below was reproduced against a real installation
+(`<IDL_ROOT>\bin\bin.x86_64\idl.exe` + `<ENVI_ROOT>`) while building this project.
 None of it is inferred from documentation. Each item is either encoded in the
 generator/runner or pinned by a test in `tests/test_scriptgen.py`.
 
@@ -12,7 +12,7 @@ does.
 ## 1. How to start a headless ENVI
 
 ```idl
-RESTORE, 'D:\IDL84\lib\hook\envi.sav'   ; mandatory: -e never auto-compiles ENVI
+RESTORE, '<IDL_ROOT>\lib\hook\envi.sav'   ; mandatory: -e never auto-compiles ENVI
 e = ENVI(/HEADLESS)                     ; a FUNCTION returning the application ref
 ; ... work ...
 e.Close                                 ; a PROCEDURE; must precede EXIT
@@ -42,14 +42,14 @@ EXIT, STATUS = 0
 * `.compile 'path'` — **no comma**. `.compile, 'path'` gives
   `% No such executive command: .compile,`.
 * `COMPILE_OPT IDL2` at the main level of an `-e` file is rejected.
-* **Argument form matters** (measured, same workspace):
+* **Argument form matters** (measured with a checkout path containing a space):
 
   | argument | result |
   |---|---|
-  | `@E:\...\run_job.pro` (backslash, bare) | exit 0, **0 modules compiled, silent no-op** |
-  | `@"E:\...\run_job.pro"` | exit 0, `% Error opening file` (quotes became part of the name) |
-  | `@E:/.../run_job.pro` (forward slash, bare) | exit 3, 37 modules compiled, **works** |
-  | `@"E:/.../run_job.pro"` | exit 0, nothing happens |
+  | `@<JOB_DIR>\run_job.pro` (backslash, bare) | exit 0, **0 modules compiled, silent no-op** |
+  | `@"<JOB_DIR>\run_job.pro"` | exit 0, `% Error opening file` (quotes became part of the name) |
+  | `@<JOB_DIR>/run_job.pro` (forward slash, bare) | exit 3, 37 modules compiled, **works** |
+  | `@"<JOB_DIR>/run_job.pro"` | exit 0, nothing happens |
 
   A path containing a space (as `<repo>` does in this project) is truncated at
   the space in the failing forms, which is why the failure looks like a missing
@@ -57,7 +57,8 @@ EXIT, STATUS = 0
 
 * **Forcing `IDL_PATH` breaks everything.** Setting `IDL_PATH=+<IDL_DEFAULT>` (and
   `IDL_STARTUP`) makes IDL print its banner and exit immediately without running
-  the batch file. `Runner.environment` returns `dict(os.environ)` unmodified.
+  the batch file. `Runner.environment` passes the ambient environment through and
+  adds only `ENVI_ROOT` for the SAVE-file fallback.
 
 * A PowerShell-written `.pro` with a UTF-8 **BOM** breaks `.compile`
   (`% Attempt to call undefined procedure: 'O'`). Generated files are written by
@@ -194,7 +195,7 @@ raster.
 
 ## 10. The `.task` catalog
 
-* `D:\ENVI52\resource\templates\tasks\*.task` — exactly **58** files, every one
+* `<ENVI_ROOT>\resource\templates\tasks\*.task` — exactly **58** files, every one
   `"invocationType": "keywords"`. No file name differs from its declared `name`.
 * Each parameter carries **both** `name` (the documented property, e.g.
   `INPUT_RASTER`) and `keyword` (the legacy routine keyword, e.g. `TARGET`). They
@@ -210,7 +211,7 @@ raster.
   resolves unique acronyms, but the long name is what ENVI wants.
 * **FLAASH is not an ENVITask in ENVI 5.2.** A recursive search for `*flaash*`
   `.task` files returns 0; FLAASH exists only as the Classic subsystem under
-  `D:\ENVI52\classic\bin\flaash`. Atmospheric correction therefore means `QUAC`.
+  `<ENVI_ROOT>\classic\bin\flaash`. Atmospheric correction therefore means `QUAC`.
 
 ## 11. Licensing
 
@@ -226,7 +227,7 @@ contains that job's directory, so a hand-started ENVI session is never touched).
 
 * A value is "already-rendered JSON" **iff it is an array** — that is the type
   signal `ENVI_DSH_RAW` establishes. Do not sniff a string's *content* to decide
-  whether it is JSON: doing so emitted `"uri":E:/.../out.dat` and `"file_type":,`
+  whether it is JSON: doing so emitted `"uri":<JOB_DIR>/out.dat` and `"file_type":,`
   because plain strings bypassed quoting and escaping.
 * An empty hash must serialize to `{}` — see the `STRARR(0)` trap above.
 

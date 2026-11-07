@@ -89,7 +89,7 @@ def test_config_resource_reports_health(config) -> None:
     payload = json.loads(state.resource_config())
     assert payload["task_count"] == 58
     assert payload["problems"] == []
-    assert payload["envi_root"].upper().endswith("ENVI52")
+    assert payload["envi_root"]
 
 
 def test_tasks_resource_carries_the_whole_catalog(config) -> None:

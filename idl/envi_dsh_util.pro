@@ -201,7 +201,7 @@ FUNCTION ENVI_DSH_JHASH, h
       parts[count] = '"' + ENVI_DSH_JESC(k) + '":' + ENVI_DSH_JVAL(v)
     ENDIF ELSE IF ISA(v, 'STRING') THEN BEGIN
       ; An array of strings is already-rendered JSON: emitted verbatim so the
-      ; fragment does not come back quoted (which produced `"uri":E:/...`).
+      ; fragment does not come back quoted (which produced `"uri":<JOB_DIR>/...`).
       parts[count] = '"' + ENVI_DSH_JESC(k) + '":' + STRING(v[0])
     ENDIF ELSE IF ISA(v, 'LIST') THEN BEGIN
       parts[count] = '"' + ENVI_DSH_JESC(k) + '":[' + ENVI_DSH_JLIST(v) + ']'

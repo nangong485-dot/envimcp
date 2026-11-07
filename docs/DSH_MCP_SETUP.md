@@ -48,17 +48,17 @@ $py   = "$repo\.venv\Scripts\python.exe"
 $cfg  = "$repo\config\envimcp.toml"
 
 # only if .venv does not exist yet
-D:\path\to\python312\python.exe -m venv "$repo\.venv"
+<PYTHON_EXE> -m venv "$repo\.venv"
 & $py -m pip install -r "$repo\requirements.txt"
 
 & $py -m envimcp.cli --config $cfg doctor
 ```
 
 `doctor` exits `0` with `verdict = ready` when the IDL executable, the ENVI
-installation and the task templates all resolve. If it reports problems, edit
-`config/envimcp.toml` (`idl_exe`, `envi_root`, `task_template_dir`,
-`sample_raster`) until it is green — a misconfigured server will look like a DSH
-bug later.
+installation and the task templates all resolve. If it reports problems, copy
+`config/envimcp.toml` to `config/local.toml` and fill in `idl_exe`,
+`envi_root`, `task_template_dir` and `sample_raster` there — the local file is
+gitignored. A misconfigured server will look like a DSH bug later.
 
 ## 3. Add the patch entry
 
@@ -82,16 +82,16 @@ So the entry you want, appended to the end of the file:
       config:
         serverName: envi
         transport: stdio
-        command: 'C:\path\to\envimcp\.venv\Scripts\python.exe'
+        command: '<repo>\.venv\Scripts\python.exe'
         args:
           - '-m'
           - 'envimcp.cli'
           - '--config'
-          - 'C:\path\to\envimcp\config\envimcp.toml'
+          - '<repo>\config\envimcp.toml'
           - 'serve'
           - '--transport'
           - 'stdio'
-        cwd: 'C:\path\to\envimcp'
+        cwd: '<repo>'
         failOnStartupError: true
 ```
 
@@ -197,7 +197,7 @@ attached; that is a host-side reconnect loop, not an envimcp problem.
 | Symptom | Cause and fix |
 |---|---|
 | Server never appears, no error | The entry was written as a plain `- id: ...` row instead of `insert:`. A non-insert patch that matches no existing row is skipped, and the log line is easy to miss. |
-| Host fails to start after editing | The patch file is parsed at boot and a bad file fails loudly. Validate with `& $py -c "import yaml;yaml.safe_load(open(r'C:\path\to\cordis.patch.yml',encoding='utf-8'))"` before restarting. |
+| Host fails to start after editing | The patch file is parsed at boot and a bad file fails loudly. Validate with `& $py -c "import yaml;yaml.safe_load(open(r'<repo>\cordis.patch.yml',encoding='utf-8'))"` before restarting. |
 | Plugin activation rejected, tools missing | Deliberate with `failOnStartupError: true`: the command line or the venv is wrong. Run check (b) above; its error is the real one. Set the flag to `false` to downgrade a broken server to silence — convenient, easy to forget. |
 | `EINVAL`/immediate exit, empty tool list | `command` was not an absolute path, or `args` was written as one space-separated string instead of a list. |
 | A stray `envimcp` server per start | Stdio negotiation launches a temporary probe process before the serving process; it should exit on its own. If pairs accumulate while no client runs jobs, restart the host. |
@@ -212,8 +212,8 @@ The command line is identical everywhere; only the config shape changes.
 
 ```toml
 [mcp_servers.envi]
-command = 'C:\path\to\envimcp\.venv\Scripts\python.exe'
-args = ["-m", "envimcp.cli", "--config", 'C:\path\to\envimcp\config\envimcp.toml', "serve", "--transport", "stdio"]
+command = '<repo>\.venv\Scripts\python.exe'
+args = ["-m", "envimcp.cli", "--config", '<repo>\config\envimcp.toml', "serve", "--transport", "stdio"]
 ```
 
 **Claude Desktop** — `claude_desktop_config.json`:
@@ -222,8 +222,8 @@ args = ["-m", "envimcp.cli", "--config", 'C:\path\to\envimcp\config\envimcp.toml
 {
   "mcpServers": {
     "envi": {
-      "command": "C:\\path\\to\\envimcp\\.venv\\Scripts\\python.exe",
-      "args": ["-m", "envimcp.cli", "--config", "C:\\path\\to\\envimcp\\config\\envimcp.toml",
+      "command": "<repo>\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "envimcp.cli", "--config", "<repo>\\config\\envimcp.toml",
                "serve", "--transport", "stdio"]
     }
   }

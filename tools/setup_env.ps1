@@ -7,21 +7,21 @@
     dev extra, and reports the result of `envimcp doctor`. Two environment facts
     drive the choices here:
 
-      * `python` and `python3` do not resolve in this shell -- the interpreter is
-        D:\python312\python.exe.
-      * pypi.org is unreachable, so packages come from the Tsinghua mirror.
+      * `python` and `python3` may not resolve in a minimal shell -- pass the
+        interpreter explicitly with -Python.
+      * packages come from a configurable mirror (the default is Tsinghua).
 
 .PARAMETER Geo
     Also install the optional [geo] extra (GDAL/Rasterio). Only needed for
     Cloud-Optimized GeoTIFF export; ENVI 5.2 cannot write COG itself.
 
 .EXAMPLE
-    pwsh -File tools/setup_env.ps1
+    pwsh -File tools/setup_env.ps1 -Python <PYTHON_EXE>
 #>
 [CmdletBinding()]
 param(
     [switch]$Geo,
-    [string]$Python = 'D:\python312\python.exe',
+    [string]$Python = '',
     [string]$Mirror = 'https://pypi.tuna.tsinghua.edu.cn/simple'
 )
 
@@ -34,6 +34,10 @@ Write-Host "envimcp setup" -ForegroundColor Cyan
 Write-Host "  root   : $root"
 Write-Host "  venv   : $venv"
 Write-Host "  python : $Python"
+
+if (-not $Python) {
+    throw "pass -Python <path-to-python.exe> (the executable is not assumed to be on PATH)"
+}
 
 if (-not (Test-Path -LiteralPath $Python)) {
     throw "interpreter not found: $Python (pass -Python <path>)"

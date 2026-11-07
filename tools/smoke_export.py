@@ -17,7 +17,7 @@ def main() -> int:
     config = load_config(ROOT / "config" / "envimcp.toml")
     plan = plan_export(
         config=config,
-        raster=r"D:\ENVI52\data\qb_boulder_msi",
+        raster=config.envi.sample_raster,
         destination="!qb_boulder_msi_export.tif",
         fmt="tiff",
     )

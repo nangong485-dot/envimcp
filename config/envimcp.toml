@@ -1,23 +1,25 @@
 # envimcp configuration. Every value can be overridden by an environment variable
 # (ENVIMCP_<SECTION>_<KEY>, upper-cased) or by the --config path passed to `envimcp`.
 #
-# Verified on this machine:
+# The values below are placeholders. Copy this file to config/local.toml
+# (gitignored) and point them at your own installation, or set the matching
+# ENVIMCP_* environment variables.
 #   ENVI 5.2  -> task templates in [task_template_dir], 58 x *.task
 #   IDL  8.4  -> idl.exe runs "-e @batch.pro" non-interactively, no GUI
-#   Python    -> D:\python312\python.exe  (bare `python` is not on PATH)
+#   Python    -> <PYTHON_EXE>  (use an absolute path if `python` is not on PATH)
 
 [envi]
 # ENVI install root. Used for log files and future task-engine upgrades.
-root = "D:\\ENVI52"
+root = "<ENVI_ROOT>"
 # Directory holding the *.task JSON specifications that define every ENVITask.
-task_template_dir = "D:\\ENVI52\\resource\\templates\\tasks"
+task_template_dir = "<ENVI_ROOT>\\resource\\templates\\tasks"
 # Sample dataset used by the smoke test and the acceptance baseline.
-sample_raster = "D:\\ENVI52\\data\\qb_boulder_msi"
+sample_raster = "<ENVI_ROOT>\\data\\qb_boulder_msi"
 
 [idl]
 # IDL 8.4 command-line interpreter. Do NOT use envi_idl.exe / idlde.exe here:
 # both are the Eclipse Workbench GUI launcher and will open a window.
-exe = "D:\\IDL84\\bin\\bin.x86_64\\idl.exe"
+exe = "<IDL_ROOT>\\bin\\bin.x86_64\\idl.exe"
 # Absolute path to the IDL runner library compiled by every generated job.
 lib_dir = "idl"
 # Non-interactive startup: no WELCOME banner, no demo mode prompt.

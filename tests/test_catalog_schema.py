@@ -79,7 +79,7 @@ def test_task_schema_is_callable_shape(catalog) -> None:
 
 def test_ndvi_acronym_resolves_to_the_long_name(catalog) -> None:
     spec = catalog.resolve("SpectralIndex")
-    out = normalize_inputs(spec, {"INPUT_RASTER": r"D:\ENVI52\data\qb_boulder_msi", "INDEX": "NDVI"})
+    out = normalize_inputs(spec, {"INPUT_RASTER": r"<ENVI_ROOT>\data\qb_boulder_msi", "INDEX": "NDVI"})
     assert out["INDEX"] == "Normalized Difference Vegetation Index"
 
 

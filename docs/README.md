@@ -11,7 +11,7 @@ MCP client (agent)
    │  stdio  or  streamable HTTP
    ▼
 envimcp MCP server  (Python 3.12, mcp 2.3.0)
-   ├─ TaskCatalog   reads D:\ENVI52\resource\templates\tasks\*.task   (58 operators)
+   ├─ TaskCatalog   reads <ENVI_ROOT>\resource\templates\tasks\*.task   (58 operators)
    ├─ ScriptGen     emits literal-property IDL source per job
    └─ JobRunner     spawns  idl.exe -e "@<job>\run_job.pro"  (1 job at a time)
    ▼
@@ -24,7 +24,7 @@ The obvious approach for "Python drives ENVI" does not work on this machine, for
 two independent reasons:
 
 1. **IDL 8.4 ships no IDL-Python bridge.** There is no `omniidl`, no `*.pyd` and
-   no Python DLL anywhere under `D:\IDL84`; `D:\IDL84\lib\bridges` contains only
+   no Python DLL anywhere under `<IDL_ROOT>`; `<IDL_ROOT>\lib\bridges` contains only
    Java and COM bridges. NV5's own documentation: *"IDL versions prior to 8.5 do
    not support Python bridge functionality."*
 2. **Stronger: `envipyengine` does not use the bridge at all.** It spawns
@@ -43,14 +43,17 @@ generates IDL source instead of making calls. See
 Everything below assumes a local ENVI 5.2 / IDL 8.4 install and one checkout of
 this repository. `<repo>` stands for the absolute path of that checkout — it may
 contain spaces, which is why every command below quotes it. The project has only
-been verified on the machine that produced it. Create the environment first — the
-`.venv` directory is **not** part of the source tree:
+been verified on a Windows workstation with a local ENVI 5.2 / IDL 8.4 install.
+Configure the checkout first, then create the environment — the `.venv`
+directory is **not** part of the source tree:
+
+Before running `setup_env.ps1`, copy `config/envimcp.toml` to
+`config/local.toml` and fill in the ENVI/IDL paths (see [Configure](#configure)).
+`setup_env.ps1` finishes by running `doctor`, which needs those paths.
 
 ```powershell
 # 1. create/reuse .venv, install the package, print a health report
-pwsh -File '<repo>\tools\setup_env.ps1'
-#    ...or, if the interpreter is not at the default path:
-pwsh -File '<repo>\tools\setup_env.ps1' -Python D:\python312\python.exe
+pwsh -File '<repo>\tools\setup_env.ps1' -Python <PYTHON_EXE>
 ```
 
 Then, from the repository root:
@@ -60,22 +63,25 @@ $root = '<repo>'
 & "$root\.venv\Scripts\python.exe" -m envimcp.cli --config "$root\config\envimcp.toml" doctor
 ```
 
-`setup_env.ps1` needs `D:\python312\python.exe` (bare `python` does not resolve in
-this shell) and reaches packages through the Tsinghua mirror, because `pypi.org`
-is unreachable from this network. It finishes by running `doctor`, which prints a
-JSON health report and exits non-zero if anything is missing.
+`setup_env.ps1` accepts an explicit `-Python <PYTHON_EXE>` path and a configurable
+package mirror. It finishes by running `doctor`, which prints a JSON health
+report and exits non-zero if anything is missing.
 
 ## Configure
 
-[`config/envimcp.toml`](../config/envimcp.toml) is the only configuration file.
+[`config/envimcp.toml`](../config/envimcp.toml) is the tracked configuration file.
 Every key can be overridden by an `ENVIMCP_*` environment variable.
+
+The tracked configuration contains placeholders. Put your real ENVI/IDL paths
+in `config/local.toml` (ignored by Git) or provide them through the matching
+`ENVIMCP_*` variables; do not commit machine-specific values.
 
 | Section | Key | Meaning |
 |---|---|---|
-| `envi` | `root` | ENVI installation (`D:\ENVI52`) |
+| `envi` | `root` | ENVI installation (`<ENVI_ROOT>`) |
 | `envi` | `task_template_dir` | Where the `*.task` definitions live |
 | `envi` | `sample_raster` | Dataset used by `smoke` (the bundled QuickBird demo) |
-| `idl` | `exe` | **`D:\IDL84\bin\bin.x86_64\idl.exe`** — not `envi_idl.exe`/`idlde.exe` |
+| `idl` | `exe` | **`<IDL_ROOT>\bin\bin.x86_64\idl.exe`** — not `envi_idl.exe`/`idlde.exe` |
 | `paths` | `jobs_dir`, `outputs_dir` | Where jobs and `#name` outputs land |
 | `limits` | `max_concurrent`, `on_busy`, `timeout_s` | ENVI is single-licensed: one job at a time |
 | `server` | `name`, `transport`, `host`, `port` | MCP identity and listen address |
@@ -95,10 +101,10 @@ $cfg = '<repo>\config\envimcp.toml'
 & $py -m envimcp.cli --config $cfg smoke             # end-to-end NDVI regression
 & $py -m envimcp.cli --config $cfg tasks spectral    # search the operator catalog
 & $py -m envimcp.cli --config $cfg schema SpectralIndex
-& $py -m envimcp.cli --config $cfg inspect D:\ENVI52\data\qb_boulder_msi
+& $py -m envimcp.cli --config $cfg inspect <ENVI_ROOT>\data\qb_boulder_msi
 & $py -m envimcp.cli --config $cfg run SpectralIndex `
-      --input INPUT_RASTER=D:\ENVI52\data\qb_boulder_msi --input INDEX=NDVI --output '#ndvi.dat'
-& $py -m envimcp.cli --config $cfg export D:\ENVI52\data\qb_boulder_msi '#msi.tif'
+      --input INPUT_RASTER=<ENVI_ROOT>\data\qb_boulder_msi --input INDEX=NDVI --output '#ndvi.dat'
+& $py -m envimcp.cli --config $cfg export <ENVI_ROOT>\data\qb_boulder_msi '#msi.tif'
 & $py -m envimcp.cli --config $cfg serve --transport stdio
 & $py -m envimcp.cli --config $cfg serve --transport http --port 8765
 ```
@@ -208,7 +214,7 @@ For multi-step chains use `envi_create_task_workflow` with `*NAME` wiring:
 {
   "steps": [
     {"task": "SpectralIndex",
-     "inputs": {"INPUT_RASTER": "D:/ENVI52/data/qb_boulder_msi", "INDEX": "NDVI"},
+     "inputs": {"INPUT_RASTER": "<ENVI_ROOT>/data/qb_boulder_msi", "INDEX": "NDVI"},
      "outputs": {"OUTPUT_RASTER": "*NDVI"}},
     {"task": "LinearPercentStretchRaster",
      "inputs": {"INPUT_RASTER": "*NDVI", "PERCENT": 2.0},

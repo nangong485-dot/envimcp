@@ -296,7 +296,7 @@ class EnvimcpServer:
         """Describe a raster: geometry, data type, projection and statistics.
 
         Args:
-            path: ENVI dataset basename (``D:/data/img``), ``.dat``/``.tif``
+            path: ENVI dataset basename (``<ENVI_ROOT>/data/img``), ``.dat``/``.tif``
                 file, or a ``.hdr``.
             stats: Include min/max/mean/stddev per band.
             use_envi: Ask ENVI instead of reading the file directly. The direct

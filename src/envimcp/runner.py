@@ -164,17 +164,17 @@ class Runner:
     def command(self, plan: JobPlan) -> list[str]:
         """``idl.exe -e "@<batch>"`` with FORWARD slashes and no added quotes.
 
-        IDL's ``@"<file>"`` form resolves the file itself, but on this machine it
+        IDL's ``@"<file>"`` form resolves the file itself, but in the tested setup it
         only works when the path uses forward slashes and is not wrapped in extra
-        quotes. Measured against this workspace (whose path contains a space):
+        quotes. Measured against a checkout whose path contains a space:
 
         ==========================================  =======  =========  ===========
         argument passed to -e                        exit    modules    verdict
         ==========================================  =======  =========  ===========
-        ``@E:\\...\\run_job.pro`` (backslash, bare)       0         0    silent no-op
-        ``@"E:\\...\\run_job.pro"``                       0         0    no such file
-        ``@E:/.../run_job.pro``   (forward, bare)     3        37    WORKS
-        ``@"E:/.../run_job.pro"``                         0         0    no such file
+        ``@<JOB_DIR>\\run_job.pro`` (backslash, bare)     0         0    silent no-op
+        ``@"<JOB_DIR>\\run_job.pro"``                     0         0    no such file
+        ``@<JOB_DIR>/run_job.pro``   (forward, bare)  3        37    WORKS
+        ``@"<JOB_DIR>/run_job.pro"``                      0         0    no such file
         ==========================================  =======  =========  ===========
 
         The bare backslash form exits 0 after truncating the path at its space,
@@ -184,15 +184,20 @@ class Runner:
         return [str(self.idl_exe), "-e", "@" + batch]
 
     def environment(self, plan: JobPlan) -> dict[str, str]:
-        """The environment for the IDL process: the host environment, unmodified.
+        """The environment for the IDL process.
 
         An earlier version forced ``IDL_PATH=+<IDL_DEFAULT>``; with that set, IDL
         started, printed its banner and exited immediately without executing the
         batch file at all (no compiled modules, no status.json). The stock
         environment -- the one ENVI's own launcher uses -- runs the same batch
-        file correctly.
+        file correctly. The only addition is ``ENVI_ROOT``, which lets the IDL
+        runner find ``save/envi_framework.sav`` without a hard-coded path.
         """
-        return dict(os.environ)
+        env = dict(os.environ)
+        envi_root = str(self.config.envi.root)
+        if envi_root and not envi_root.startswith("<"):
+            env.setdefault("ENVI_ROOT", envi_root)
+        return env
 
     def _explain_exit(self, code: int | None) -> str:
         if code is None:

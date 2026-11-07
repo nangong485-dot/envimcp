@@ -9,7 +9,7 @@ MCP 客户端（智能体）
    │  stdio 或 streamable HTTP
    ▼
 envimcp MCP 服务端   (Python 3.12, mcp 2.3.0)
-   ├─ TaskCatalog   读取 D:\ENVI52\resource\templates\tasks\*.task   (58 个算子)
+   ├─ TaskCatalog   读取 <ENVI_ROOT>\resource\templates\tasks\*.task   (58 个算子)
    ├─ ScriptGen     为每个作业生成「字面量属性」形式的 IDL 源码
    └─ JobRunner     启动  idl.exe -e "@<job>\run_job.pro"  (同一时刻只跑 1 个作业)
    ▼
@@ -20,20 +20,22 @@ IDL 8.4 进程 → ENVI(/HEADLESS) → ENVITask → status.json
 
 "用 Python 驱动 ENVI"这条最直觉的路在这台机器上走不通，有两个彼此独立的理由：
 
-1. **IDL 8.4 根本没有 IDL-Python 桥。** `D:\IDL84` 下没有 `omniidl`、没有任何 `*.pyd`、也没有 Python DLL；`D:\IDL84\lib\bridges` 里只有 Java 桥和 COM 桥。NV5 自己的文档写着：*"IDL versions prior to 8.5 do not support Python bridge functionality."*
+1. **IDL 8.4 根本没有 IDL-Python 桥。** `<IDL_ROOT>` 下没有 `omniidl`、没有任何 `*.pyd`、也没有 Python DLL；`<IDL_ROOT>\lib\bridges` 里只有 Java 桥和 COM 桥。NV5 自己的文档写着：*"IDL versions prior to 8.5 do not support Python bridge functionality."*
 2. **更要命的是，`envipyengine` 压根不用那个桥。** 它是启动 `taskengine.exe` 并在 stdin/stdout 上交换 JSON，而这个可执行文件最早出现在 **IDL 8.5.2 / ENVI 5.3**（`idltask.html` 的版本历史：`8.5.2 | Introduced`）。光有 IDL 8.5 仍然不够。
 
 所以本项目走的是**真正被支持**的那条路：ENVI 5.2 有文档保证的 `ENVI(/HEADLESS)`，通过 `idl.exe -e` 驱动。代价是 ENVI 的算子参数**只能以编译期字面量关键字**的方式设置，于是 Python 改为生成 IDL 源码而不是发调用。塑造了这套生成器的 24 个坑见 [IDL_NOTES.md](IDL_NOTES.md)。
 
 ## 安装
 
-以下内容假定：本机装有 ENVI 5.2 / IDL 8.4，且你已有一份本仓库的检出。`<repo>` 指这份检出目录的绝对路径——它**可能含空格**，所以下面每条命令都加了引号。本项目只在产出它的那台机器上验证过。先建环境，`.venv` 目录**不属于**源码树：
+以下内容假定：本机装有 ENVI 5.2 / IDL 8.4，且你已有一份本仓库的检出。`<repo>` 指这份检出目录的绝对路径——它**可能含空格**，所以下面每条命令都加了引号。本项目只在装有本地 ENVI 5.2 / IDL 8.4 的 Windows 工作站上验证过。先完成配置，再建环境，`.venv` 目录**不属于**源码树：
+
+运行 `setup_env.ps1` 之前，先把 `config/envimcp.toml` 复制为
+`config/local.toml` 并填入 ENVI/IDL 路径（见[配置](#配置)）。`setup_env.ps1`
+最后会跑 `doctor`，它需要这些路径。
 
 ```powershell
 # 1. 创建/复用 .venv，安装包，打印健康报告
-pwsh -File '<repo>\tools\setup_env.ps1'
-#    ……或者解释器不在默认位置时：
-pwsh -File '<repo>\tools\setup_env.ps1' -Python D:\python312\python.exe
+pwsh -File '<repo>\tools\setup_env.ps1' -Python <PYTHON_EXE>
 ```
 
 然后在仓库根目录下：
@@ -43,18 +45,20 @@ $root = '<repo>'
 & "$root\.venv\Scripts\python.exe" -m envimcp.cli --config "$root\config\envimcp.toml" doctor
 ```
 
-`setup_env.ps1` 需要 `D:\python312\python.exe`（这个 shell 里裸写 `python` 解析不到），并通过清华镜像装包，因为本网络访问不了 `pypi.org`。脚本最后会跑一次 `doctor`：它打印 JSON 健康报告，缺东西就以非零码退出。
+`setup_env.ps1` 接受显式的 `-Python <PYTHON_EXE>` 路径和可配置的包镜像。脚本最后会跑一次 `doctor`：它打印 JSON 健康报告，缺东西就以非零码退出。
 
 ## 配置
 
-[`config/envimcp.toml`](../config/envimcp.toml) 是唯一的配置文件。每个键都能用 `ENVIMCP_*` 环境变量覆盖。
+[`config/envimcp.toml`](../config/envimcp.toml) 是仓库跟踪的配置文件。每个键都能用 `ENVIMCP_*` 环境变量覆盖。
+
+仓库里的配置只放占位符。把你的真实 ENVI/IDL 路径写进 `config/local.toml`（已被 Git 忽略），或通过对应的 `ENVIMCP_*` 环境变量提供；不要把本机路径提交进仓库。
 
 | 段 | 键 | 含义 |
 |---|---|---|
-| `envi` | `root` | ENVI 安装目录（`D:\ENVI52`） |
+| `envi` | `root` | ENVI 安装目录（`<ENVI_ROOT>`） |
 | `envi` | `task_template_dir` | `*.task` 算子定义所在目录 |
 | `envi` | `sample_raster` | `smoke` 使用的数据集（ENVI 随附的 QuickBird 样例） |
-| `idl` | `exe` | **`D:\IDL84\bin\bin.x86_64\idl.exe`**——不是 `envi_idl.exe`/`idlde.exe` |
+| `idl` | `exe` | **`<IDL_ROOT>\bin\bin.x86_64\idl.exe`**——不是 `envi_idl.exe`/`idlde.exe` |
 | `paths` | `jobs_dir`、`outputs_dir` | 作业目录与 `#name` 输出的落地位置 |
 | `limits` | `max_concurrent`、`on_busy`、`timeout_s` | ENVI 是单许可的：同一时刻只能跑一个作业 |
 | `server` | `name`、`transport`、`host`、`port` | MCP 身份与监听地址 |
@@ -73,10 +77,10 @@ $cfg = '<repo>\config\envimcp.toml'
 & $py -m envimcp.cli --config $cfg smoke             # 端到端 NDVI 回归
 & $py -m envimcp.cli --config $cfg tasks spectral    # 检索算子目录
 & $py -m envimcp.cli --config $cfg schema SpectralIndex
-& $py -m envimcp.cli --config $cfg inspect D:\ENVI52\data\qb_boulder_msi
+& $py -m envimcp.cli --config $cfg inspect <ENVI_ROOT>\data\qb_boulder_msi
 & $py -m envimcp.cli --config $cfg run SpectralIndex `
-      --input INPUT_RASTER=D:\ENVI52\data\qb_boulder_msi --input INDEX=NDVI --output '#ndvi.dat'
-& $py -m envimcp.cli --config $cfg export D:\ENVI52\data\qb_boulder_msi '#msi.tif'
+      --input INPUT_RASTER=<ENVI_ROOT>\data\qb_boulder_msi --input INDEX=NDVI --output '#ndvi.dat'
+& $py -m envimcp.cli --config $cfg export <ENVI_ROOT>\data\qb_boulder_msi '#msi.tif'
 & $py -m envimcp.cli --config $cfg serve --transport stdio
 & $py -m envimcp.cli --config $cfg serve --transport http --port 8765
 ```
@@ -172,7 +176,7 @@ DeepSeek Harness 不用 JSON 配置块：它靠给 profile 组合打补丁来注
 {
   "steps": [
     {"task": "SpectralIndex",
-     "inputs": {"INPUT_RASTER": "D:/ENVI52/data/qb_boulder_msi", "INDEX": "NDVI"},
+     "inputs": {"INPUT_RASTER": "<ENVI_ROOT>/data/qb_boulder_msi", "INDEX": "NDVI"},
      "outputs": {"OUTPUT_RASTER": "*NDVI"}},
     {"task": "LinearPercentStretchRaster",
      "inputs": {"INPUT_RASTER": "*NDVI", "PERCENT": 2.0},

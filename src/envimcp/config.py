@@ -6,8 +6,12 @@ Precedence (highest first):
   3. ``config/envimcp.toml`` at the project root, if present
   4. built-in ``DEFAULT_CONFIG``
 
-The defaults describe this machine (ENVI 5.2 in ``D:\\ENVI52``, IDL 8.4 in
-``D:\\IDL84``). Override them for another install instead of editing code.
+A sibling ``local.toml`` is merged over the selected config before environment
+overrides are applied.
+
+The shipped values are placeholders. Point them at a real ENVI 5.2 / IDL 8.4
+installation with ``config/local.toml`` (gitignored) or ``ENVIMCP_*``
+environment variables.
 """
 
 from __future__ import annotations
@@ -31,14 +35,16 @@ else:  # pragma: no cover
 ENV_PREFIX = "ENVIMCP_"
 DEFAULT_CONFIG_NAME = "envimcp.toml"
 
+#: Deliberately machine-neutral. A local ``config/local.toml`` overrides these
+#: values without putting a developer's directory layout in the public tree.
 DEFAULT_CONFIG: dict[str, dict[str, Any]] = {
     "envi": {
-        "root": r"D:\ENVI52",
-        "task_template_dir": r"D:\ENVI52\resource\templates\tasks",
-        "sample_raster": r"D:\ENVI52\data\qb_boulder_msi",
+        "root": r"<ENVI_ROOT>",
+        "task_template_dir": r"<ENVI_ROOT>\resource\templates\tasks",
+        "sample_raster": r"<ENVI_ROOT>\data\qb_boulder_msi",
     },
     "idl": {
-        "exe": r"D:\IDL84\bin\bin.x86_64\idl.exe",
+        "exe": r"<IDL_ROOT>\bin\bin.x86_64\idl.exe",
         "lib_dir": "idl",
         "pref": "IDL_STARTUP=,IDL_PATH=+<IDL_DEFAULT>,IDL_DEMO_MODE=0",
     },
@@ -228,7 +234,7 @@ class Config:
         if require_idl and not Path(self.idl.exe).is_file():
             problems.append(
                 f"idl.exe not found at {self.idl.exe!r}; real ENVI tasks need a local IDL "
-                "installation (set ENVIMCP_IDL_EXE or edit config/envimcp.toml)"
+                "installation (set ENVIMCP_IDL_EXE or put idl.exe in config/local.toml)"
             )
         if not Path(self.envi.task_template_dir).is_dir():
             problems.append(
@@ -307,6 +313,17 @@ def _load_toml(path: Path) -> dict[str, Any]:
         raise ConfigError(f"invalid TOML in {path}: {exc}") from exc
 
 
+def _merge_sections(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """Return *base* with section-level values overridden by *override*."""
+    merged = dict(base)
+    for section, values in override.items():
+        if isinstance(merged.get(section), dict) and isinstance(values, dict):
+            merged[section] = {**merged[section], **values}
+        else:
+            merged[section] = values
+    return merged
+
+
 def _env_overrides() -> dict[tuple[str, str], str]:
     out: dict[tuple[str, str], str] = {}
     for key, value in os.environ.items():
@@ -329,6 +346,10 @@ def load_config(
     if config_path is not None and config_path.is_file():
         data = _load_toml(config_path)
         source = str(config_path)
+        local_path = config_path.with_name("local.toml")
+        if local_path.is_file():
+            data = _merge_sections(data, _load_toml(local_path))
+            source = f"{source} + {local_path}"
     elif path:
         raise ConfigError(f"config file not found: {path}")
     else:

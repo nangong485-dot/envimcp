@@ -92,12 +92,17 @@ PRO ENVI_DSH_START, OK = ok, ERRMSG = errmsg
   ; mode, where IDL does not auto-compile anything: ENVI lives in a SAVE file
   ; and is not resolvable by name. Calls failed with
   ; "% Attempt to call undefined function: 'ENVI'" until this RESTORE was added.
-  sav = 'D:\IDL84\lib\hook\envi.sav'
-  IF ~FILE_TEST(sav) THEN sav = 'D:\ENVI52\save\envi_framework.sav'
+  sav = FILEPATH('envi.sav', ROOT_DIR=!DIR, SUBDIRECTORY=['lib', 'hook'])
+  IF ~FILE_TEST(sav) THEN BEGIN
+    enviRoot = GETENV('ENVI_ROOT')
+    IF enviRoot EQ '' THEN enviRoot = GETENV('ENVIMCP_ENVI_ROOT')
+    IF enviRoot NE '' THEN $
+      sav = FILEPATH('envi_framework.sav', ROOT_DIR=enviRoot, SUBDIRECTORY=['save'])
+  ENDIF
   IF ~FILE_TEST(sav) THEN BEGIN
     CATCH, /CANCEL
-    errmsg = 'no ENVI SAVE file found; looked for ' $
-             + 'D:\IDL84\lib\hook\envi.sav and D:\ENVI52\save\envi_framework.sav'
+    errmsg = 'no ENVI SAVE file found; set ENVI_ROOT or check ' $
+             + FILEPATH('envi.sav', ROOT_DIR=!DIR, SUBDIRECTORY=['lib', 'hook'])
     RETURN
   ENDIF
   RESTORE, sav

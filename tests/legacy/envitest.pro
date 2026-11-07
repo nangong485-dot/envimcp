@@ -8,7 +8,7 @@ PRO envitest
   PRINT, 'WIDGET_ID (headless => 0): ' + STRTRIM(e.WIDGET_ID, 2)
   PRINT, 'Task count: ' + STRTRIM(N_ELEMENTS(e.TASK_NAMES), 2)
 
-  raster = e.OpenRaster('D:\ENVI52\data\qb_boulder_msi')
+  raster = e.OpenRaster('<ENVI_ROOT>\data\qb_boulder_msi')
   PRINT, 'Raster: ' + STRTRIM(raster.NCOLUMNS,2) + ' x ' + STRTRIM(raster.NROWS,2) + $
     ' x ' + STRTRIM(raster.NBANDS,2) + ' bands'
 

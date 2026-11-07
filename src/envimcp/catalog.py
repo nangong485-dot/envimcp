@@ -1,7 +1,7 @@
 """Task catalog: read the ENVI ``*.task`` specifications that define every ENVITask.
 
 Verified facts about the 58 templates shipped with ENVI 5.2
-(``D:\\ENVI52\\resource\\templates\\tasks``):
+(``<ENVI_ROOT>\\resource\\templates\\tasks``):
 
 * every ``invocationType`` is ``"keywords"``
 * each parameter carries ``name`` (the documented property, e.g. ``INPUT_RASTER``)
